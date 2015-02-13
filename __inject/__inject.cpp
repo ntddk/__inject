@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <tlhelp32.h>
 
-#define TARGET_NAME "calc.exe"
-
 BOOL EnablePrivilege(LPTSTR lpszPrivilege, BOOL bEnable)
 {
 	BOOL bResult;
@@ -32,7 +30,33 @@ BOOL EnablePrivilege(LPTSTR lpszPrivilege, BOOL bEnable)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	HANDLE hSnapshot;
+	BOOL bProcess;
+	PROCESSENTRY32 pEntry;
+	HANDLE hProcess;
+
 	if (!EnablePrivilege(SE_DEBUG_NAME, TRUE)) return 0;
+
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot = INVALID_HANDLE_VALUE) return 0;
+
+	pEntry.dwSize = sizeof(pEntry);
+	if (Process32First(hSnapshot, &pEntry))
+	{
+		do {
+			if (_wcsicmp(pEntry.szExeFile, L"calc.exe"))
+			{
+				hProcess = OpenProcess(PROCESS_ALL_ACCESS, TRUE, pEntry.th32ProcessID);
+
+				// InjectCode(hProcess);
+
+				CloseHandle(hProcess);
+				break;
+			}
+		} while (Process32Next(hSnapshot, &pEntry));
+	}
+
+	CloseHandle(hSnapshot);
 
 	return 0;
 }
